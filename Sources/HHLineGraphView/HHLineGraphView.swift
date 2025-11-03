@@ -49,13 +49,28 @@ struct Graph: View {
     let peakDotColor: Color
     let lineColor: Color
     let fillColors: [Color]
+    let valueTextColor: Color
     
-    init(data: [GraphValue], frame: CGRect, peakDotColor: Color = Color(.systemPink), lineColor: Color =  Color(.systemPink), fillColors: [Color] = [Color(.systemPink).opacity(0.56), Color(.systemPink).opacity(0.3)]) {
+    init(data: [GraphValue], frame: CGRect,
+         peakDotColor: Color = Color(.systemPink),
+         lineColor: Color =  Color(.systemPink),
+         fillColors: [Color] = [Color(.systemPink).opacity(0.56), Color(.systemPink).opacity(0.3)],
+         valueTextColor: Color? = nil
+    ) {
         self.data = data
         self.frame = frame
         self.peakDotColor = peakDotColor
         self.lineColor = lineColor
         self.fillColors = fillColors
+        if let valueTextColor {
+            self.valueTextColor = valueTextColor
+        } else {
+#if os(iOS)
+            self.valueTextColor = Color(.label)
+    #else
+            self.valueTextColor = Color(.labelColor)
+    #endif
+        }
     }
     
     private let kLabelValueWidth: CGFloat = 30
@@ -268,7 +283,7 @@ struct Graph: View {
             ForEach(values, id: \.offset) { it in
                 Text(it.text ?? "")
                     .font(.system(size: 12, weight: .bold))
-                    .foregroundColor(Color(.systemPurple).opacity(0.7))
+                    .foregroundColor(valueTextColor)
                     .position(
                         x: kLabelValueWidth  + kLeadingDotMargin + (step.x * CGFloat(it.offset)),
                         y: frame.height - 12)
