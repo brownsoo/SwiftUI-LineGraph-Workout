@@ -31,11 +31,10 @@ struct HHLineGraphView: View {
         ZStack {
             GeometryReader { reader in
                 Graph(data: self.values,
-                      frame: .constant(
-                        CGRect(
-                            x: 0, y: 0,
-                            width: reader.frame(in: .local).width,
-                            height: reader.frame(in: .local).height))
+                      frame: CGRect(
+                        x: 0, y: 0,
+                        width: reader.frame(in: .local).width,
+                        height: reader.frame(in: .local).height)
                 ).offset(x: 0, y: 0)
             }.frame(height: graphHeight)
         }
@@ -45,8 +44,19 @@ struct HHLineGraphView: View {
 }
 
 struct Graph: View {
-    var data: [GraphValue]
-    @Binding var frame: CGRect
+    let data: [GraphValue]
+    let frame: CGRect
+    let peakDotColor: Color
+    let lineColor: Color
+    let fillColors: [Color]
+    
+    init(data: [GraphValue], frame: CGRect, peakDotColor: Color = Color(.systemPink), lineColor: Color =  Color(.systemPink), fillColors: [Color] = [Color(.systemPink).opacity(0.56), Color(.systemPink).opacity(0.3)]) {
+        self.data = data
+        self.frame = frame
+        self.peakDotColor = peakDotColor
+        self.lineColor = lineColor
+        self.fillColors = fillColors
+    }
     
     private let kLabelValueWidth: CGFloat = 30
     private let kLabelHeight: CGFloat = 40
@@ -144,6 +154,19 @@ struct Graph: View {
             xyPoints.append(p2)
         }
         return xyPoints
+    }
+    
+    private func peakLine(step: CGPoint, points: [CGPoint]) -> Path {
+        var path = Path()
+        if (points.count < 2){
+            return path
+        }
+        path.move(to: CGPoint(x: kLabelValueWidth, y: points[0].y - (step.y / 2)))
+        for i in 0..<points.count {
+            path.addLine(to: points[i])
+        }
+        debugPrint(points.count)
+        return path
     }
     
     private func lineChart(step: CGPoint, points:[CGPoint]) -> Path {
@@ -270,12 +293,16 @@ struct Graph: View {
             valueLine(step: step, labels: labels)
                 
             if !peaks.isEmpty {
+                peakLine(step: step, points: peaks)
+                    .stroke()
+                    .foregroundStyle(lineColor)
+                
                 lineChart(step: step, points: peaks)
-                    .fill(LinearGradient(gradient: Gradient(colors: [Color(.systemPink).opacity(0.56), Color(.darkGray).opacity(0.56)]), startPoint: .top, endPoint: .bottom))
+                    .fill(LinearGradient(gradient: Gradient(colors: fillColors), startPoint: .top, endPoint: .bottom))
                     .drawingGroup()
                 
                 lineDot(points: peaks)
-                    .foregroundColor(Color(.systemPink))
+                    .foregroundColor(peakDotColor)
                     .drawingGroup()
             }
         }
@@ -318,7 +345,7 @@ struct GraphView_Previews: PreviewProvider {
                 GraphValue(value: 52.5, label: "4.22"),
                 GraphValue(value: 53.8, label: "4.25"),
                 GraphValue(value: 57, label: "4.27"),
-                GraphValue(value: 57, label: "4.28"),
+                GraphValue(value: 60, label: "4.28"),
             ])
         }
         .background(backgroundColor)
