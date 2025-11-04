@@ -1,6 +1,6 @@
 # SwiftUI workout to Making Line Graph
 
-> SwiftUI로 등고선 그래프(차트) 만들어보기.
+> SwiftUI로 선 그래프(차트) 만들어보기.
 
 ## HHLineGraphView
 
